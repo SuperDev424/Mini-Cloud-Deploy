@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/dokku/dokku/plugins/app-json"
+	appjson "github.com/dokku/dokku/plugins/app-json"
 	"github.com/dokku/dokku/plugins/common"
 )
 
@@ -18,6 +18,11 @@ func main() {
 
 	var err error
 	switch trigger {
+	case "install":
+		err = appjson.TriggerInstall()
+	case "post-delete":
+		appName := flag.Arg(0)
+		err = appjson.TriggerPostDelete(appName)
 	case "post-deploy":
 		appName := flag.Arg(0)
 		imageTag := flag.Arg(3)
