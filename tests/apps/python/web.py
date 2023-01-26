@@ -12,6 +12,12 @@ class GetHandler(http.server.BaseHTTPRequestHandler):
 
         if self.path == '/':
             self.wfile.write("python/http.server".encode("utf-8"))
+        elif self.path == '/conftest':
+            value = os.getenv("CONFTEST", "")
+            self.wfile.write(value.encode("utf-8"))
+        elif self.path == '/hello':
+            value = os.getenv("HELLO", "")
+            self.wfile.write(value.encode("utf-8"))
         else:
             data = json.dumps(dict(os.environ), sort_keys=True, indent=4)
             self.wfile.write(data.encode("utf-8"))
