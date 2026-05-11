@@ -199,6 +199,61 @@ teardown() {
   assert_output_contains "['task.py', 'test']"
 }
 
+@test "(scheduler-k3s) cnb dokku run:detached returns pod name with launcher entrypoint" {
+  if [[ -z "$DOCKERHUB_USERNAME" ]] || [[ -z "$DOCKERHUB_TOKEN" ]]; then
+    skip "skipping due to missing docker.io credentials DOCKERHUB_USERNAME:DOCKERHUB_TOKEN"
+  fi
+
+  INGRESS_CLASS=nginx install_k3s
+
+  run /bin/bash -c "dokku apps:create $TEST_APP"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run /bin/bash -c "dokku builder:set $TEST_APP selected pack"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+
+  run deploy_app python dokku@$DOKKU_DOMAIN:$TEST_APP add_requirements_txt_cnb
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output_contains 'from cnb stack'
+
+  run /bin/bash -c "dokku --quiet run:detached $TEST_APP sleep 300"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output_exists
+  pod_name="$output"
+
+  run /bin/bash -c "kubectl get pod $pod_name -o=jsonpath='{.metadata.labels.app\.kubernetes\.io/part-of}'"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output "$TEST_APP"
+
+  run /bin/bash -c "kubectl get pod $pod_name -o=jsonpath='{.metadata.annotations.dokku\.com/builder-type}'"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output "pack"
+
+  run /bin/bash -c "kubectl get pod $pod_name -o=jsonpath='{.spec.containers[0].command[0]}'"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output "launcher"
+
+  run /bin/bash -c "kubectl get pod $pod_name -o=jsonpath='{.spec.containers[0].args[0]}'"
+  echo "output: $output"
+  echo "status: $status"
+  assert_success
+  assert_output "sleep"
+}
+
 cron_run_wrapper() {
   local APP="$1"
   local APP_REPO_DIR="$2"
