@@ -63,7 +63,7 @@ teardown() {
   echo "status: $status"
   assert_success
 
-  run /bin/bash -c "kubectl get ingressroutes.traefik.io ${TEST_APP}-web-http-80-5000 -n default -o jsonpath='{.spec.routes[0].middlewares[0].name}'"
+  run /bin/bash -c "kubectl get ingressroutes.traefik.io ${TEST_APP}-web-http-80-5000 -n default -o jsonpath='{.spec.routes[0].middlewares[1].name}'"
   echo "output: $output"
   echo "status: $status"
   assert_success
